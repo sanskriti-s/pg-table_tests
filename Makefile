@@ -1,4 +1,4 @@
-PROGS:=malloc mmap
+PROGS:=malloc mmap sbrk
 
 all: $(PROGS)
 
