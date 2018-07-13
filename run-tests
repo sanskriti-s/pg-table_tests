@@ -1,0 +1,37 @@
+#!/bin/bash
+
+EXPECT_5LVL=0
+
+#
+# Detect configuration
+#
+SUPPORT_NO5LVL=0
+SUPPORT_LA57=0
+SUPPORT_CONFIG_5LVL=0
+
+if grep -q la57 /proc/cpuinfo 2>/dev/null; then
+	echo "Detected la57 cpu support"
+	SUPPORT_LA57=1
+fi
+
+
+if grep -q no5lvl /proc/cmdline 2>/dev/null; then
+	echo "Detected no5lvl kernel parameter"
+	SUPPORT_NO5LVL=1
+fi
+
+
+if grep -q CONFIG_X86_5LEVEL=y /boot/config-$(uname -r) 2>/dev/null  ; then
+	echo "Detected 5lvl config"
+	SUPPORT_CONFIG_5LVL=1
+fi
+
+if [[ $SUPPORT_LA57 -eq 1 &&  $SUPPORT_NO5LVL -eq 0 && $SUPPORT_CONFIG_5LVL -eq 1 ]] ; then
+	EXPECT_5LVL=1
+fi
+
+if [[ $EXPECT_5LVL -eq 1 ]] ; then
+	echo "Expecting 5-level pagetables"
+else
+	echo "Expecting 4-level pagetables"
+fi
