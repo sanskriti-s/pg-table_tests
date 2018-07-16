@@ -2,6 +2,8 @@
 
 EXPECT_5LVL=0
 
+MAX_USER_VM_4LVL_GiB=$(( 131072 ))
+
 #
 # Detect configuration
 #
@@ -34,4 +36,26 @@ if [[ $EXPECT_5LVL -eq 1 ]] ; then
 	echo "Expecting 5-level pagetables"
 else
 	echo "Expecting 4-level pagetables"
+fi
+
+
+#
+# malloc test
+#
+echo
+echo "Running malloc test... "
+regex="^([0-9]+) GiB allocated."
+output=$(./malloc)
+
+if [[ $? -ne 0 ]] ; then
+	echo "FAILED"
+elif [[ $output =~ $regex ]] ; then
+	alloc="${BASH_REMATCH[1]}"
+	if [[ $alloc -gt $MAX_USER_VM_4LVL_GiB ]] ; then
+		echo "$alloc GiB allocated > $MAX_USER_VM_4LVL_GiB GiB max 4-lvl user VM max"
+		echo "FAILED"
+	else
+		echo "$alloc GiB allocated <= $MAX_USER_VM_4LVL_GiB GiB max 4-lvl user VM max"
+		echo "PASS"
+	fi
 fi
