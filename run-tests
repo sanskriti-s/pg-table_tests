@@ -40,6 +40,21 @@ fi
 
 
 #
+# setup test programs
+#
+
+# If stdin is open on a terminal, set color mode
+[[ -t 1 ]] && COLOR="${COLOR:=1}"
+
+if [[ $COLOR -eq 1 ]] ; then
+        MSG_FAILED="\033[0;31mFAILED\033[0m"
+        MSG_PASSED="\033[0;32mPASSED\033[0m"
+else
+        MSG_FAILED="FAILED"
+        MSG_PASSED="PASSED"
+fi
+
+#
 # malloc test
 #
 echo
@@ -53,10 +68,10 @@ elif [[ $output =~ $regex ]] ; then
 	alloc="${BASH_REMATCH[1]}"
 	if [[ $alloc -gt $MAX_USER_VM_4LVL_GiB ]] ; then
 		echo "$alloc GiB allocated > $MAX_USER_VM_4LVL_GiB GiB max 4-lvl user VM max"
-		echo "FAILED"
+		echo -e "$MSG_FAILED"
 	else
 		echo "$alloc GiB allocated <= $MAX_USER_VM_4LVL_GiB GiB max 4-lvl user VM max"
-		echo "PASS"
+		echo -e "$MSG_PASSED"
 	fi
 fi
 
@@ -74,9 +89,9 @@ elif [[ $output =~ $regex ]] ; then
 	alloc="${BASH_REMATCH[1]}"
 	if [[ $alloc -gt $MAX_USER_VM_4LVL_GiB ]] ; then
 		echo "$alloc GiB allocated > $MAX_USER_VM_4LVL_GiB GiB max 4-lvl user VM max"
-		echo "FAILED"
+		echo -e "$MSG_FAILED"
 	else
 		echo "$alloc GiB allocated <= $MAX_USER_VM_4LVL_GiB GiB max 4-lvl user VM max"
-		echo "PASS"
+		echo -e "$MSG_PASSED"
 	fi
 fi
