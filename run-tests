@@ -59,3 +59,24 @@ elif [[ $output =~ $regex ]] ; then
 		echo "PASS"
 	fi
 fi
+
+#
+# sbrk test
+#
+echo
+echo "Running sbrk test... "
+regex="^([0-9]+) GiB allocated."
+output=$(./sbrk)
+
+if [[ $? -ne 0 ]] ; then
+	echo "FAILED"
+elif [[ $output =~ $regex ]] ; then
+	alloc="${BASH_REMATCH[1]}"
+	if [[ $alloc -gt $MAX_USER_VM_4LVL_GiB ]] ; then
+		echo "$alloc GiB allocated > $MAX_USER_VM_4LVL_GiB GiB max 4-lvl user VM max"
+		echo "FAILED"
+	else
+		echo "$alloc GiB allocated <= $MAX_USER_VM_4LVL_GiB GiB max 4-lvl user VM max"
+		echo "PASS"
+	fi
+fi
