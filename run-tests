@@ -23,7 +23,7 @@ if grep -q no5lvl /proc/cmdline 2>/dev/null; then
 fi
 
 
-if grep -q CONFIG_X86_5LEVEL=y /boot/config-$(uname -r) 2>/dev/null  ; then
+if grep -q CONFIG_X86_5LEVEL=y /boot/config-"$(uname -r)" 2>/dev/null  ; then
 	echo "Detected 5lvl config"
 	SUPPORT_CONFIG_5LVL=1
 fi
