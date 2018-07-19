@@ -11,7 +11,6 @@ int i_till;
 int map_size;
 int set_size;
 void *ptr;
-void * addr;
 int c = 1;
 
         if (argc==1){
