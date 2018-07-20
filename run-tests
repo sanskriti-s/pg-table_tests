@@ -94,3 +94,47 @@ elif [[ $output =~ $regex ]] ; then
 		echo -e "$MSG_PASSED"
 	fi
 fi
+
+#
+# mmap+memset+fork test - 1 process, MAP_PRIVATE
+#
+echo
+echo "Running mmap+memset+fork test: 1 process, MAP_PRIVATE..."
+output="$(./mmap+memset+fork --map_private)"
+fail=$?
+regex="read\(.*\) != write_pattern\(.*\)"
+
+while IFS= read -r ; do
+	if [[ $output =~ $regex ]] ; then
+		fail=1
+		break;
+	fi
+done <<< "$output"
+
+if [[ $fail -eq 1 ]] ; then
+	echo -e "$MSG_FAILED"
+else
+	echo -e "$MSG_PASSED"
+fi
+
+#
+# mmap+memset+fork test - 2 processes, MAP_PRIVATE
+#
+echo
+echo "Running mmap+memset+fork test: 2 processes, MAP_PRIVATE..."
+output="$(./mmap+memset+fork --fork_child --map_private)"
+fail=$?
+regex="read\(.*\) != write_pattern\(.*\)"
+
+while IFS= read -r ; do
+	if [[ $output =~ $regex ]] ; then
+		fail=1
+		break;
+	fi
+done <<< "$output"
+
+if [[ $fail -eq 1 ]] ; then
+	echo -e "$MSG_FAILED"
+else
+	echo -e "$MSG_PASSED"
+fi

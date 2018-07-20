@@ -98,6 +98,7 @@ int main(int argc, char *argv[]){
 	void * addr;
 	void ** array;
 	int pid;
+	unsigned char write_pattern;
 
 
 	parse_options (argc,argv);
@@ -126,20 +127,23 @@ int main(int argc, char *argv[]){
 	}
 	pid = getpid();
 	printf ("PID = %d \n",pid);
+	write_pattern = pid;
 	for (i = 0; i < (i_till - i_from); i++){
 
 		if (demo == 1){
 			getchar ();
 		}
-		memset (array[i], pid, set_size);
+		memset (array[i], write_pattern, set_size);
 		if (debug_print == 1){
 			printf ("PID = %d, touched %p \n", pid, array[i]);
 		}
 	}
 	for (i = i_from; i < i_till; i++){
-		char val = *(char*)array [i - i_from];
-		if (val!=(char)pid){
-			printf("PID = %d\n",pid);
+		unsigned char val = *(char*)array [i - i_from];
+		if (val!=write_pattern){
+			printf("PID = %d, %p read(0x%02x) != write_pattern(0x%02x)\n",
+					pid, array [i - i_from], val,
+					write_pattern);
 		}
 	}
 	free(array);	
