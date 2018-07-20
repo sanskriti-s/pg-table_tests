@@ -1,4 +1,4 @@
-PROGS:=malloc mmap sbrk
+PROGS:=malloc mmap sbrk mmap+memset+fork
 SCRIPTS:=run-tests
 
 all: $(PROGS)
