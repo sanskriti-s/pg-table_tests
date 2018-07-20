@@ -60,10 +60,9 @@ fi
 echo
 echo "Running malloc test... "
 regex="^([0-9]+) GiB allocated."
-output=$(./malloc)
+if ! output=$(./malloc) ; then
+       echo "$? FAILED"
 
-if [[ $? -ne 0 ]] ; then
-	echo "FAILED"
 elif [[ $output =~ $regex ]] ; then
 	alloc="${BASH_REMATCH[1]}"
 	if [[ $alloc -gt $MAX_USER_VM_4LVL_GiB ]] ; then
@@ -81,10 +80,10 @@ fi
 echo
 echo "Running sbrk test... "
 regex="^([0-9]+) GiB allocated."
-output=$(./sbrk)
 
-if [[ $? -ne 0 ]] ; then
-	echo "FAILED"
+if ! output=$(./sbrk) ; then
+       echo "$? FAILED"
+
 elif [[ $output =~ $regex ]] ; then
 	alloc="${BASH_REMATCH[1]}"
 	if [[ $alloc -gt $MAX_USER_VM_4LVL_GiB ]] ; then
