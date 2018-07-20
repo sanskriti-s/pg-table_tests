@@ -1,5 +1,8 @@
 # pg-table_tests
 
+![build
+status](https://api.travis-ci.com/sanskriti-s/pg-table_tests.svg?branch=master)
+
 This project consists of a suite of tools to test and verify 5-level page table
 behavior on Linux.
 
