@@ -94,14 +94,24 @@ elif [[ $output =~ $regex ]] ; then
 		echo -e "$MSG_PASSED"
 	fi
 fi
-
+#
+# setting up the mmap tests
+#
+if [[ $EXPECT_5LVL -eq 1 ]] ; then
+	BEGIN="47"
+	END="56"
+else
+	BEGIN="37"
+	END="46"
+fi
 
 #
 # mmap+memset+fork test - 1 process, MAP_PRIVATE
 #
 echo
 echo "Running mmap+memset+fork test: 1 process, MAP_PRIVATE..."
-output="$(./mmap+memset+fork --map_private)"
+output="$(./mmap+memset+fork --begin "$BEGIN" --end "$END" --map_private)"
+
 fail=$?
 regex="read\(.*\) != write_pattern\(.*\)"
 
@@ -123,7 +133,8 @@ fi
 #
 echo
 echo "Running mmap+memset+fork test: 2 processes, MAP_PRIVATE..."
-output="$(./mmap+memset+fork --fork_child --map_private)"
+output="$(./mmap+memset+fork --begin "$BEGIN" --end "$END" --fork_child --map_private)"
+
 fail=$?
 regex="read\(.*\) != write_pattern\(.*\)"
 
@@ -139,3 +150,4 @@ if [[ $fail -eq 1 ]] ; then
 else
 	echo -e "$MSG_PASSED"
 fi
+
