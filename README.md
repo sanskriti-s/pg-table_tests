@@ -1,13 +1,12 @@
 # pg-table_tests
 
-![build
-status](https://api.travis-ci.com/sanskriti-s/pg-table_tests.svg?branch=master)
+![build status](https://api.travis-ci.com/sanskriti-s/pg-table_tests.svg?branch=master)
 
 This project consists of a suite of tools to test and verify 5-level page table
 behavior on Linux.
 
-As documented in the [Linux kernel](Documentation/x86/x86_64/5level-paging.txt),
-5-level page tables boosts the virtual address space from 256 TiB
+As [documented](Documentation/x86/x86_64/5level-paging.txt) in the Linux kernel
+sources, 5-level page tables boosts the virtual address space from 256 TiB
 (2<sup>47</sup> bytes) to 128 PiB (2<sup>57</sup> bytes).
 
 Since Linux splits its virtual address space between user and kernel,
@@ -16,11 +15,13 @@ to 64 PiB (2<sup>56</sup> bytes).  However, due to backwards compatibility
 concerns, this can only be achieved using the `mmap()` call with a specified
 hint address above the previous 47-bit limit.
 
-Here is an aligned dump of `/proc/.../maps` for such process.  Each of the 1GiB
-`rw-p` anonymous chunks was allocated using `mmap()` with a desired hint
-address:
+Here is an example `/proc/<pid>/maps` for a process that is utilizing virtual
+address above the 47-bit range.  Each of the 1GiB `rw-p` anonymous chunks was
+allocated using `mmap()` with a desired hint address:
 
 ```
+address                            perms offset    dev    inode     pathname
+-------------------------------------------------------------------------------------------
 00400000-00401000                  r-xp  00000000  fd:00  67184873  /root/mmap
 00600000-00601000                  r--p  00000000  fd:00  67184873  /root/mmap
 00601000-00602000                  rw-p  00001000  fd:00  67184873  /root/mmap
@@ -66,6 +67,11 @@ provided by 5-level page tables.  Functions like `malloc()`, `sbrk()/brk()` and
 
 ## Configuration
 
+The `run-tests` script will determine if 5-level page tables are fully supported
+(see requirements in following sub-sections).  If any of the prerequisites are
+not detected, `run-tests` will fall back to executing its tests with 4-level
+page tables in mind.
+
 ### Processor
 
 5-level page tables must have processor support.  This project is exercising the
@@ -90,3 +96,46 @@ The Linux kernel must have 5-level page table support enabled:
 grep CONFIG_X86_5LEVEL /boot/config-$(uname -r)
 CONFIG_X86_5LEVEL=y
 ```
+
+## Building
+
+Test programs can be built using the project's Makefile:
+
+```
+% make 
+cc     malloc.c   -o malloc
+cc     mmap.c   -o mmap
+cc     sbrk.c   -o sbrk
+cc     mmap+memset+fork.c   -o mmap+memset+fork
+```
+
+`$CC` `$CFLAGS` build options may be overridden on the command line:
+
+```
+% CC=clang CFLAGS='-ggdb -Wall' make
+clang -ggdb -Wall    malloc.c   -o malloc
+clang -ggdb -Wall    mmap.c   -o mmap
+clang -ggdb -Wall    sbrk.c   -o sbrk
+clang -ggdb -Wall    mmap+memset+fork.c   -o mmap+memset+fork
+```
+
+Binaries and temporary files can be cleaned up using the `make clean` target.
+
+For developers, shells scripts can be run through the
+[ShellCheck](https://github.com/koalaman/shellcheck) linter using the `make
+check` target.  Note: this will require installing the ShellCheck program, see
+[instructions](https://github.com/koalaman/shellcheck#installing) its webpage
+for more information.
+
+## Running
+
+Tests may be run individually (use `--help` for usage), or collectively via the
+`run-tests` script.
+
+## Tests
+
+### malloc
+### sbrk
+### mmap+memset+fork.c
+#### MAP_ANONYMOUS | MAP_PRIVATE
+#### MAP_ANONYMOUS | MAP_SHARED
