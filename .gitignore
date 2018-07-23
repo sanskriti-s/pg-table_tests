@@ -1,0 +1,4 @@
+malloc
+mmap
+mmap+memset+fork
+sbrk
