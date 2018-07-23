@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <getopt.h>
 
-int flag = MAP_ANONYMOUS | MAP_POPULATE|MAP_FIXED;
+int flag = MAP_FIXED;
 int do_fork = 0;
 int demo = 0;
 int debug_print = 0;
@@ -18,15 +18,17 @@ void usage(){
 	printf("Usage: ./mmap+memset+fork [OPTION]\n");	
 	printf("Tests virtual adress space updates with fork and mmap options\n\n");
 	printf("-d, --debug		prints out the PID and address touched by memset\n");
-	printf("-k, --keystroke		same as debug, but requires a char to b entered to show each line\n");
+	printf("-k, --keystroke		same as debug, but requires a char to be entered to show each line\n");
 	printf("-h, --help              prints out help message\n");
-	printf("-s, --map_shared        sets MAP_SHARED flag in mmap\n");
-	printf("-p, --map_private       sets MAP_PRIVATE flag in mmap\n");
 	printf("-f, --fork_child        causes program to fork a child process\n");
 	printf("-b, --begin             mmaps and memsets from 2^(arg)\n");
 	printf("-e, --end               mmaps and memsets till 2^(arg)\n");
 	printf("-m, --map_size          mmaps given size\n");
 	printf("-n, --set_size          memsets given size\n");
+	printf("-u, --map_populate      sets MAP_POPULATE flag in mmap\n");
+	printf("-a, --map_anonymous     sets MAP_ANONYMOUS flag in mmap\n");
+	printf("-s, --map_shared        sets MAP_SHARED flag in mmap\n");
+	printf("-p, --map_private       sets MAP_PRIVATE flag in mmap\n");
 	exit(EXIT_FAILURE);
 }
 
@@ -46,6 +48,8 @@ void parse_options (int argc, char *argv[]){
 		{"end", required_argument, 0, 'e'},
 		{"map_size", required_argument, 0, 'm'},
 		{"set_size", required_argument, 0, 'n'},
+		{"map_populate", required_argument, 0, 'u'},
+		{"map_anonymous", required_argument, 0, 'a'},
 		{0,0,0,0}
 	};
 
@@ -82,6 +86,12 @@ void parse_options (int argc, char *argv[]){
 				break;
 			case 'n':
 				set_size = atoi (optarg);
+				break;
+			case 'u':
+				flag |= MAP_POPULATE;
+				break;
+			case 'a':
+				flag |= MAP_ANONYMOUS;
 				break;
 
 			default:
