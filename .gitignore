@@ -1,4 +1,3 @@
-malloc
+heap
 mmap
 mmap+memset+fork
-sbrk

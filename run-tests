@@ -55,12 +55,12 @@ else
 fi
 
 #
-# malloc test
+# heap test - malloc
 #
 echo
-echo "Running malloc test... "
+echo "Running heap - malloc test... "
 regex="^([0-9]+) GiB allocated."
-if ! output=$(./malloc) ; then
+if ! output=$(./heap --malloc) ; then
        echo "$? FAILED"
 
 elif [[ $output =~ $regex ]] ; then
@@ -74,14 +74,14 @@ elif [[ $output =~ $regex ]] ; then
 	fi
 fi
 
+
 #
-# sbrk test
+# heap test - sbrk
 #
 echo
-echo "Running sbrk test... "
+echo "Running heap - sbrk test... "
 regex="^([0-9]+) GiB allocated."
-
-if ! output=$(./sbrk) ; then
+if ! output=$(./heap --sbrk) ; then
        echo "$? FAILED"
 
 elif [[ $output =~ $regex ]] ; then
@@ -94,6 +94,7 @@ elif [[ $output =~ $regex ]] ; then
 		echo -e "$MSG_PASSED"
 	fi
 fi
+
 
 #
 # mmap+memset+fork test - 1 process, MAP_PRIVATE
