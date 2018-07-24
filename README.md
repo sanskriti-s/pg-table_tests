@@ -121,11 +121,11 @@ clang -ggdb -Wall    mmap+memset+fork.c   -o mmap+memset+fork
 
 Binaries and temporary files can be cleaned up using the `make clean` target.
 
-For developers, shells scripts can be run through the
-[ShellCheck](https://github.com/koalaman/shellcheck) linter using the `make
-check` target.  Note: this will require installing the ShellCheck program, see
-[instructions](https://github.com/koalaman/shellcheck#installing) its webpage
-for more information.
+For developers, shell scripts can be run through
+[ShellCheck](https://github.com/koalaman/shellcheck) and C sources
+through the [cppcheck](http://cppcheck.sourceforge.net/) linters using the
+`make check` target.  See each program's respective webpage for installation
+instructions.
 
 ## Running
 
