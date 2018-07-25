@@ -1,5 +1,5 @@
 #!/bin/bash
-
+EXIT_STATUS=0
 EXPECT_5LVL=0
 
 MAX_USER_VM_4LVL_GiB=$(( 131072 ))
@@ -61,13 +61,14 @@ echo
 echo "Running heap - malloc test... "
 regex="^([0-9]+) GiB allocated."
 if ! output=$(./heap --malloc) ; then
-       echo "$? FAILED"
-
+	echo "$? FAILED"
+	EXIT_STATUS=1
 elif [[ $output =~ $regex ]] ; then
 	alloc="${BASH_REMATCH[1]}"
 	if [[ $alloc -gt $MAX_USER_VM_4LVL_GiB ]] ; then
 		echo "$alloc GiB allocated > $MAX_USER_VM_4LVL_GiB GiB max 4-lvl user VM max"
 		echo -e "$MSG_FAILED"
+		EXIT_STATUS=1
 	else
 		echo "$alloc GiB allocated <= $MAX_USER_VM_4LVL_GiB GiB max 4-lvl user VM max"
 		echo -e "$MSG_PASSED"
@@ -82,13 +83,14 @@ echo
 echo "Running heap - sbrk test... "
 regex="^([0-9]+) GiB allocated."
 if ! output=$(./heap --sbrk) ; then
-       echo "$? FAILED"
-
+	echo "$? FAILED"
+	EXIT_STATUS=1
 elif [[ $output =~ $regex ]] ; then
 	alloc="${BASH_REMATCH[1]}"
 	if [[ $alloc -gt $MAX_USER_VM_4LVL_GiB ]] ; then
 		echo "$alloc GiB allocated > $MAX_USER_VM_4LVL_GiB GiB max 4-lvl user VM max"
 		echo -e "$MSG_FAILED"
+		EXIT_STATUS=1
 	else
 		echo "$alloc GiB allocated <= $MAX_USER_VM_4LVL_GiB GiB max 4-lvl user VM max"
 		echo -e "$MSG_PASSED"
@@ -124,6 +126,8 @@ done <<< "$output"
 
 if [[ $fail -eq 1 ]] ; then
 	echo -e "$MSG_FAILED"
+	EXIT_STATUS=1
+
 else
 	echo -e "$MSG_PASSED"
 fi
@@ -147,7 +151,8 @@ done <<< "$output"
 
 if [[ $fail -eq 1 ]] ; then
 	echo -e "$MSG_FAILED"
+	EXIT_STATUS=1
 else
 	echo -e "$MSG_PASSED"
 fi
-
+exit $EXIT_STATUS
