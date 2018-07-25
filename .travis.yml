@@ -6,3 +6,4 @@ before_install:
 script:
   - CC=gcc CFLAGS=-Wall make
   - make check
+  - ./run-tests
