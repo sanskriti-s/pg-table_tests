@@ -112,7 +112,7 @@ fi
 #
 echo
 echo "Running mmap+memset+fork test: 1 process, MAP_PRIVATE..."
-output="$(./mmap+memset+fork --begin "$BEGIN" --end "$END" --map_private)"
+output="$(./mmap+memset+fork --begin "$BEGIN" --end "$END" --map_private --map_anonymous)"
 
 fail=$?
 regex="read\(.*\) != write_pattern\(.*\)"
@@ -137,7 +137,7 @@ fi
 #
 echo
 echo "Running mmap+memset+fork test: 2 processes, MAP_PRIVATE..."
-output="$(./mmap+memset+fork --begin "$BEGIN" --end "$END" --fork_child --map_private)"
+output="$(./mmap+memset+fork --begin "$BEGIN" --end "$END" --fork_child --map_private --map_anonymous)"
 
 fail=$?
 regex="read\(.*\) != write_pattern\(.*\)"

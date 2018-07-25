@@ -48,8 +48,8 @@ void parse_options (int argc, char *argv[]){
 		{"end", required_argument, 0, 'e'},
 		{"map_size", required_argument, 0, 'm'},
 		{"set_size", required_argument, 0, 'n'},
-		{"map_populate", required_argument, 0, 'u'},
-		{"map_anonymous", required_argument, 0, 'a'},
+		{"map_populate", no_argument, 0, 'u'},
+		{"map_anonymous", no_argument, 0, 'a'},
 		{0,0,0,0}
 	};
 
