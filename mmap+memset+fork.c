@@ -113,7 +113,7 @@ int main(int argc, char *argv[]){
 
 	parse_options (argc,argv);
 
-	array = malloc (sizeof(*array)*(i_till-i_from));
+	array = malloc (sizeof(*array)*((i_till-i_from)+1));
 	
 	if (!array) {
 		perror("malloc");
@@ -121,7 +121,7 @@ int main(int argc, char *argv[]){
 	}	
 
 
-	for (i = i_from; i < i_till; i++){
+	for (i = i_from; i <= i_till; i++){
 		addr = (void*)((unsigned long long) 1<<i);
 		ptr= mmap(addr, map_size, PROT_READ | PROT_WRITE,
 				flag, -1, 0);
@@ -139,7 +139,7 @@ int main(int argc, char *argv[]){
 	pid = getpid();
 	printf ("PID = %d \n",pid);
 	write_pattern = pid;
-	for (i = 0; i < (i_till - i_from); i++){
+	for (i = 0; i <= (i_till - i_from); i++){
 
 		if (demo == 1){
 			getchar ();
@@ -149,7 +149,7 @@ int main(int argc, char *argv[]){
 			printf ("PID = %d, touched %p \n", pid, array[i]);
 		}
 	}
-	for (i = i_from; i < i_till; i++){
+	for (i = i_from; i <= i_till; i++){
 		unsigned char val = *(char*)array [i - i_from];
 		if (val!=write_pattern){
 			printf("PID = %d, %p read(0x%02x) != write_pattern(0x%02x)\n",
