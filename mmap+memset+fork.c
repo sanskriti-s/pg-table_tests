@@ -11,8 +11,8 @@ int demo = 0;
 int debug_print = 0;
 int i_from = 30;
 int i_till = 39;
-int map_size = 4096;
-int set_size = 4096;
+unsigned long long map_size = 1UL << 12;
+unsigned long long set_size = 1UL << 12;
 
 void usage(){
 	printf("Usage: ./mmap+memset+fork [OPTION]\n");	
@@ -23,8 +23,8 @@ void usage(){
 	printf("-f, --fork_child        causes program to fork a child process\n");
 	printf("-b, --begin             mmaps and memsets from 2^(arg)\n");
 	printf("-e, --end               mmaps and memsets till 2^(arg)\n");
-	printf("-m, --map_size          mmaps given size\n");
-	printf("-n, --set_size          memsets given size\n");
+	printf("-m, --mmap_order        mmaps given 2^(arg) size\n");
+	printf("-n, --set_order         memsets given 2^(arg) size\n");
 	printf("-u, --map_populate      sets MAP_POPULATE flag in mmap\n");
 	printf("-a, --map_anonymous     sets MAP_ANONYMOUS flag in mmap\n");
 	printf("-s, --map_shared        sets MAP_SHARED flag in mmap\n");
@@ -46,8 +46,8 @@ void parse_options (int argc, char *argv[]){
 		{"fork_child", no_argument, 0, 'f'},
 		{"begin", required_argument, 0, 'b'},
 		{"end", required_argument, 0, 'e'},
-		{"map_size", required_argument, 0, 'm'},
-		{"set_size", required_argument, 0, 'n'},
+		{"mmap_order", required_argument, 0, 'm'},
+		{"set_order", required_argument, 0, 'n'},
 		{"map_populate", no_argument, 0, 'u'},
 		{"map_anonymous", no_argument, 0, 'a'},
 		{0,0,0,0}
@@ -82,10 +82,10 @@ void parse_options (int argc, char *argv[]){
 				i_till = atoi (optarg);
 				break;
 			case 'm':
-				map_size = atoi (optarg);
+				map_size = 1ULL << atoi (optarg);
 				break;
 			case 'n':
-				set_size = atoi (optarg);
+				set_size = 1ULL << atoi (optarg);
 				break;
 			case 'u':
 				flag |= MAP_POPULATE;
