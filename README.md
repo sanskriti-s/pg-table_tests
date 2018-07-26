@@ -132,6 +132,8 @@ instructions.
 Tests may be run individually (use `--help` for usage), or collectively via the
 `run-tests` script.
 
+![Example run of code](demo2.gif)
+
 ## Tests
 
 ### malloc
