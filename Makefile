@@ -1,5 +1,5 @@
-PROGS:=heap mmap mmap+memset+fork
-SRCS:=heap.c mmap.c mmap+memset+fork.c
+PROGS:=heap mmap+memset+fork
+SRCS:=heap.c mmap+memset+fork.c
 SCRIPTS:=run-tests
 
 all: $(PROGS)

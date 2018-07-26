@@ -1,3 +1,2 @@
 heap
-mmap
 mmap+memset+fork
