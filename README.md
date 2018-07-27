@@ -103,19 +103,15 @@ Test programs can be built using the project's Makefile:
 
 ```
 % make 
-cc     malloc.c   -o malloc
-cc     mmap.c   -o mmap
-cc     sbrk.c   -o sbrk
+cc     heap.c   -o heap
 cc     mmap+memset+fork.c   -o mmap+memset+fork
 ```
 
-`$CC` `$CFLAGS` build options may be overridden on the command line:
+`$CC` and `$CFLAGS` build options may be overridden on the command line:
 
 ```
 % CC=clang CFLAGS='-ggdb -Wall' make
-clang -ggdb -Wall    malloc.c   -o malloc
-clang -ggdb -Wall    mmap.c   -o mmap
-clang -ggdb -Wall    sbrk.c   -o sbrk
+clang -ggdb -Wall    heap.c   -o heap
 clang -ggdb -Wall    mmap+memset+fork.c   -o mmap+memset+fork
 ```
 
@@ -136,8 +132,11 @@ Tests may be run individually (use `--help` for usage), or collectively via the
 
 ## Tests
 
-### malloc
-### sbrk
+### heap
+#### malloc
+#### sbrk
 ### mmap+memset+fork.c
+#### MAP_PRIVATE
+#### MAP_SHARED
 #### MAP_ANONYMOUS | MAP_PRIVATE
 #### MAP_ANONYMOUS | MAP_SHARED
