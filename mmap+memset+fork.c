@@ -4,6 +4,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <getopt.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 int flag = MAP_FIXED;
 int do_fork = 0;
@@ -31,7 +34,6 @@ void usage(){
 	printf("-p, --map_private       sets MAP_PRIVATE flag in mmap\n");
 	exit(EXIT_FAILURE);
 }
-
 
 void parse_options (int argc, char *argv[]){
 	int long_index = 0;
@@ -93,7 +95,6 @@ void parse_options (int argc, char *argv[]){
 			case 'a':
 				flag |= MAP_ANONYMOUS;
 				break;
-
 			default:
 				usage();
 		}
@@ -109,30 +110,54 @@ int main(int argc, char *argv[]){
 	void ** array;
 	int pid;
 	unsigned char write_pattern;
-
+	int fd = -1;
+	int ret = EXIT_SUCCESS;
 
 	parse_options (argc,argv);
-
 	array = malloc (sizeof(*array)*((i_till-i_from)+1));
 	
 	if (!array) {
 		perror("malloc");
-		exit(EXIT_FAILURE);
+		ret = EXIT_FAILURE;
+		goto done;		
 	}	
 
+	if (!(flag & MAP_ANONYMOUS)){
+
+		/* Open file, create and truncate it */
+		fd = open("mmap-datafile", O_RDWR | O_CREAT | O_TRUNC,
+				S_IRUSR | S_IWUSR |
+				S_IRGRP | S_IWGRP |
+				S_IROTH | S_IWOTH);
+		if (fd == -1) {
+			perror("open");
+			ret = EXIT_FAILURE;
+			goto cleanup_free;	
+		}
+
+		/* Set the file size */
+		if (ftruncate(fd, map_size) < 0) {
+			perror("ftruncate");
+			ret = EXIT_FAILURE;
+			goto cleanup_fd;
+		}
+	}
 
 	for (i = i_from; i <= i_till; i++){
+
 		addr = (void*)((unsigned long long) 1<<i);
 		ptr= mmap(addr, map_size, PROT_READ | PROT_WRITE,
-				flag, -1, 0);
+				flag, fd, 0);
 		array[i - i_from] = ptr;
 		printf ("i=%d,addr=%p,ptr=%p \n",i,addr,ptr);
 		if (ptr == MAP_FAILED){
 			free(array);
 			perror ("mmap");
-			return EXIT_FAILURE;
+			ret = EXIT_FAILURE;
+			goto cleanup_fd;
 		}
 	}
+
 	if (do_fork == 1){
 		fork();
 	}
@@ -140,7 +165,6 @@ int main(int argc, char *argv[]){
 	printf ("PID = %d \n",pid);
 	write_pattern = pid;
 	for (i = 0; i <= (i_till - i_from); i++){
-
 		if (demo == 1){
 			getchar ();
 		}
@@ -157,6 +181,12 @@ int main(int argc, char *argv[]){
 					write_pattern);
 		}
 	}
-	free(array);	
-	return 0;
+
+	munmap(ptr, map_size);
+cleanup_fd:
+	close(fd);
+cleanup_free:
+	free(array);
+done:
+	return ret;
 }

@@ -1,6 +1,7 @@
 PROGS:=heap mmap+memset+fork
 SRCS:=heap.c mmap+memset+fork.c
 SCRIPTS:=run-tests
+GENERATED:=mmap-datafile
 
 all: $(PROGS)
 
@@ -9,4 +10,4 @@ check:
 	cppcheck --error-exitcode=1 $(SRCS)
 
 clean:
-	rm -f *.o $(PROGS)
+	rm -f $(PROGS) $(GENERATED)
