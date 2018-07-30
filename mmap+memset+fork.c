@@ -151,7 +151,6 @@ int main(int argc, char *argv[]){
 		array[i - i_from] = ptr;
 		printf ("i=%d,addr=%p,ptr=%p \n",i,addr,ptr);
 		if (ptr == MAP_FAILED){
-			free(array);
 			perror ("mmap");
 			ret = EXIT_FAILURE;
 			goto cleanup_fd;
