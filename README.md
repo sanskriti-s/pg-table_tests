@@ -5,7 +5,7 @@
 This project consists of a suite of tools to test and verify 5-level page table
 behavior on Linux.
 
-As [documented](Documentation/x86/x86_64/5level-paging.txt) in the Linux kernel
+As [documented](https://github.com/torvalds/linux/blob/master/Documentation/x86/x86_64/5level-paging.txt) in the Linux kernel
 sources, 5-level page tables boosts the virtual address space from 256 TiB
 (2<sup>47</sup> bytes) to 128 PiB (2<sup>57</sup> bytes).
 
@@ -102,7 +102,7 @@ CONFIG_X86_5LEVEL=y
 Test programs can be built using the project's Makefile:
 
 ```
-% make 
+% make
 cc     heap.c   -o heap
 cc     mmap+memset+fork.c   -o mmap+memset+fork
 ```
@@ -133,10 +133,235 @@ Tests may be run individually (use `--help` for usage), or collectively via the
 ## Tests
 
 ### heap
+
+In x86 architecture, the stack grows up and towards the heap (which by
+convention grows in the opposite direction to the stack).
+
+![Heap and stack](heap-stack.png)
+
+By the sample `/proc/<pid>/maps` listing provided at the top, the stack is
+currently set at address range, 7fffd27c3000-7fffd27e400. Thus it only takes 47
+bits (log 7fffd27e4000 / log 2) to address this space. As the heap can't grow
+past the stack, this means that like the stack, only 47 bits are needed to
+address the heap even while using the 5-level page tables.
+
+This program tests to check if heap allocations can surpass 4-level page table
+tests.
+
 #### malloc
+
+The malloc test allocates as much memory as it can, 1 GiB at a time, pushing the
+heap up to higher and higher address ranges. (This memory is left
+uninitialized.) Once the `malloc()` call fails, the test then returns the number
+of gigabytes allocated.
+
+Expected return values:
+```
+4-level page tables: ~130000 GiB
+5-level page tables: ~130000 GiB
+```
+as it only takes 47bits to address ~130000 GiB
+
 #### sbrk
-### mmap+memset+fork.c
-#### MAP_PRIVATE
+
+The sbrk test grows the heap by changing the location of the program break,
+which defines the end of a process's data segment. Like the malloc test, this
+effectively allocates more virtual memory space to the calling process.
+
+Expected return values:
+```
+4-level page tables: ~130000 GiB
+5-level page tables: ~130000 GiB
+```
+
+### mmap+memset+fork
+
+On x86 architecture, 5-level paging enables 56-bit userspace virtual address
+space. However, not all user space is ready to handle such wide addresses. To
+mitigate this, the kernel will not allocate virtual space above 47-bit by
+default. But userspace can ask for allocation from full address space by
+specifying hint address (with or without `MAP_FIXED`) above 47-bits.
+
+This program verifies that `mmap()` is possible beyond the 4-level
+page table range when supported and specifically requested.  The test
+program also verifies COW (copy on write) behaviour functions correctly
+while forking and sharing mappings.
+
+#### MAP_FIXED
+
+In order to successfully allocate large virtual address space as described by
+the Linux
+[documentation](https://github.com/torvalds/linux/blob/master/Documentation/x86/x86_64/5level-paging.txt),
+the mmap+memset+fork will always call `mmap()` with the `MAP_FIXED` flag set.
+
+To illustrate, we can invoke mmap+memset+fork to create a series of mmap
+requests, starting with a fixed address at 0x100000000000 (2^44 bytes) and
+ending at 0x1000000000000 (2^56 bytes):
+
+4-level page tables results:
+```
+./mmap+memset+fork --begin 44 --end 56 --map_private
+i=44,addr=0x100000000000,ptr=0x100000000000
+i=45,addr=0x200000000000,ptr=0x200000000000
+i=46,addr=0x400000000000,ptr=0x400000000000
+i=47,addr=0x800000000000,ptr=0xffffffffffffffff
+mmap: Cannot allocate memory
+```
+
+5-level page tables results:
+```
+./mmap+memset+fork --begin 44 --end 56 --map_private
+i=44,addr=0x100000000000,ptr=0x100000000000
+i=45,addr=0x200000000000,ptr=0x200000000000
+i=46,addr=0x400000000000,ptr=0x400000000000
+i=47,addr=0x800000000000,ptr=0x800000000000
+i=48,addr=0x1000000000000,ptr=0x1000000000000
+i=49,addr=0x2000000000000,ptr=0x2000000000000
+i=50,addr=0x4000000000000,ptr=0x4000000000000
+i=51,addr=0x8000000000000,ptr=0x8000000000000
+i=52,addr=0x10000000000000,ptr=0x10000000000000
+i=53,addr=0x20000000000000,ptr=0x20000000000000
+i=54,addr=0x40000000000000,ptr=0x40000000000000
+i=55,addr=0x80000000000000,ptr=0x80000000000000
+i=56,addr=0x100000000000000,ptr=0xffffffffffffffff
+mmap: Cannot allocate memory
+```
+
+The results for the 5-level page table test confirms that using
+`MAP_FIXED` and a very large hint address, we can utilize the extra
+virtual address space unavailable to the 4-level page table test.
+
+
 #### MAP_SHARED
+
+![map-shared](map_shared.png)
+
+4-level page tables
+```
+
+i=44,addr=0x100000000000,ptr=0x100000000000
+i=45,addr=0x200000000000,ptr=0x200000000000
+i=46,addr=0x400000000000,ptr=0x400000000000
+i=47,addr=0x800000000000,ptr=0xffffffffffffffff
+mmap: Cannot allocate memory
+```
+
+5 level page table
+
+```
+
+i=44,addr=0x100000000000,ptr=0x100000000000
+i=45,addr=0x200000000000,ptr=0x200000000000
+i=46,addr=0x400000000000,ptr=0x400000000000
+i=47,addr=0x800000000000,ptr=0x800000000000
+i=48,addr=0x1000000000000,ptr=0x1000000000000
+i=49,addr=0x2000000000000,ptr=0x2000000000000
+i=50,addr=0x4000000000000,ptr=0x4000000000000
+i=51,addr=0x8000000000000,ptr=0x8000000000000
+i=52,addr=0x10000000000000,ptr=0x10000000000000
+i=53,addr=0x20000000000000,ptr=0x20000000000000
+i=54,addr=0x40000000000000,ptr=0x40000000000000
+i=55,addr=0x80000000000000,ptr=0x80000000000000
+PID = 9975
+PID = 9976
+```
+
+#### MAP_PRIVATE
+
+![map-private](map_private.png)
+
+4-level page tables
+```
+i=44,addr=0x100000000000,ptr=0x100000000000
+i=45,addr=0x200000000000,ptr=0x200000000000
+i=46,addr=0x400000000000,ptr=0x400000000000
+i=47,addr=0x800000000000,ptr=0xffffffffffffffff
+mmap: Cannot allocate memory
+```
+5-level page table
+```
+
+i=44,addr=0x100000000000,ptr=0x100000000000
+i=45,addr=0x200000000000,ptr=0x200000000000
+i=46,addr=0x400000000000,ptr=0x400000000000
+i=47,addr=0x800000000000,ptr=0x800000000000
+i=48,addr=0x1000000000000,ptr=0x1000000000000
+i=49,addr=0x2000000000000,ptr=0x2000000000000
+i=50,addr=0x4000000000000,ptr=0x4000000000000
+i=51,addr=0x8000000000000,ptr=0x8000000000000
+i=52,addr=0x10000000000000,ptr=0x10000000000000
+i=53,addr=0x20000000000000,ptr=0x20000000000000
+i=54,addr=0x40000000000000,ptr=0x40000000000000
+i=55,addr=0x80000000000000,ptr=0x80000000000000
+PID = 9987
+PID = 9988
+
+```
+
 #### MAP_ANONYMOUS | MAP_PRIVATE
+
+4-level page tables
+```
+
+i=44,addr=0x100000000000,ptr=0x100000000000
+i=45,addr=0x200000000000,ptr=0x200000000000
+i=46,addr=0x400000000000,ptr=0x400000000000
+i=47,addr=0x800000000000,ptr=0xffffffffffffffff
+mmap: Cannot allocate memory
+```
+5 level page tables
+```
+
+i=44,addr=0x100000000000,ptr=0x100000000000
+i=45,addr=0x200000000000,ptr=0x200000000000
+i=46,addr=0x400000000000,ptr=0x400000000000
+i=47,addr=0x800000000000,ptr=0x800000000000
+i=48,addr=0x1000000000000,ptr=0x1000000000000
+i=49,addr=0x2000000000000,ptr=0x2000000000000
+i=50,addr=0x4000000000000,ptr=0x4000000000000
+i=51,addr=0x8000000000000,ptr=0x8000000000000
+i=52,addr=0x10000000000000,ptr=0x10000000000000
+i=53,addr=0x20000000000000,ptr=0x20000000000000
+i=54,addr=0x40000000000000,ptr=0x40000000000000
+i=55,addr=0x80000000000000,ptr=0x80000000000000
+PID = 9985
+PID = 9986
+```
+
 #### MAP_ANONYMOUS | MAP_SHARED
+
+4-level page tables
+```
+
+i=44,addr=0x100000000000,ptr=0x100000000000
+i=45,addr=0x200000000000,ptr=0x200000000000
+i=46,addr=0x400000000000,ptr=0x400000000000
+i=47,addr=0x800000000000,ptr=0xffffffffffffffff
+mmap: Cannot allocate memory
+```
+5 level page table
+```
+
+i=44,addr=0x100000000000,ptr=0x100000000000
+i=45,addr=0x200000000000,ptr=0x200000000000
+i=46,addr=0x400000000000,ptr=0x400000000000
+i=47,addr=0x800000000000,ptr=0x800000000000
+i=48,addr=0x1000000000000,ptr=0x1000000000000
+i=49,addr=0x2000000000000,ptr=0x2000000000000
+i=50,addr=0x4000000000000,ptr=0x4000000000000
+i=51,addr=0x8000000000000,ptr=0x8000000000000
+i=52,addr=0x10000000000000,ptr=0x10000000000000
+i=53,addr=0x20000000000000,ptr=0x20000000000000
+i=54,addr=0x40000000000000,ptr=0x40000000000000
+i=55,addr=0x80000000000000,ptr=0x80000000000000
+PID = 9983
+PID = 9984
+PID = 9984, 0x800000000 read(0xff) != write_pattern(0x00)
+PID = 9983, 0x40000000 read(0x00) != write_pattern(0xff)
+PID = 9983, 0x80000000 read(0x00) != write_pattern(0xff)
+PID = 9983, 0x100000000 read(0x00) != write_pattern(0xff)
+PID = 9983, 0x200000000 read(0x00) != write_pattern(0xff)
+PID = 9983, 0x400000000 read(0x00) != write_pattern(0xff)
+PID = 9983, 0x1000000000 read(0x00) != write_pattern(0xff)
+
+```
