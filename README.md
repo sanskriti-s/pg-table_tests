@@ -187,6 +187,12 @@ page table range when supported and specifically requested.  The test
 program also verifies COW (copy on write) behaviour functions correctly
 while forking and sharing mappings.
 
+Due to the indeterminate execution order (no pattern to the printing out of the
+PIDs post forking), the verification loop at the end of the program occasionally
+reports read != write. This only shows in the `MAP_SHARED` cases as 
+`MAP_PRIVATE` keeps all the processes private from each other. Managing process
+execution order is an area for improvement. 
+
 #### MAP_FIXED
 
 In order to successfully allocate large virtual address space as described by
@@ -238,7 +244,7 @@ virtual address space unavailable to the 4-level page table test.
 
 4-level page tables
 ```
-
+./mmap+memset+fork --begin 44 --end 55 --map_shared
 i=44,addr=0x100000000000,ptr=0x100000000000
 i=45,addr=0x200000000000,ptr=0x200000000000
 i=46,addr=0x400000000000,ptr=0x400000000000
@@ -249,7 +255,7 @@ mmap: Cannot allocate memory
 5 level page table
 
 ```
-
+./mmap+memset+fork --begin 44 --end 55 --map_shared
 i=44,addr=0x100000000000,ptr=0x100000000000
 i=45,addr=0x200000000000,ptr=0x200000000000
 i=46,addr=0x400000000000,ptr=0x400000000000
@@ -272,6 +278,7 @@ PID = 9976
 
 4-level page tables
 ```
+./mmap+memset+fork --begin 44 --end 55 --map_private
 i=44,addr=0x100000000000,ptr=0x100000000000
 i=45,addr=0x200000000000,ptr=0x200000000000
 i=46,addr=0x400000000000,ptr=0x400000000000
@@ -280,7 +287,7 @@ mmap: Cannot allocate memory
 ```
 5-level page table
 ```
-
+./mmap+memset+fork --begin 44 --end 55 --map_private
 i=44,addr=0x100000000000,ptr=0x100000000000
 i=45,addr=0x200000000000,ptr=0x200000000000
 i=46,addr=0x400000000000,ptr=0x400000000000
@@ -297,42 +304,16 @@ PID = 9987
 PID = 9988
 
 ```
-
-#### MAP_ANONYMOUS | MAP_PRIVATE
-
-4-level page tables
-```
-
-i=44,addr=0x100000000000,ptr=0x100000000000
-i=45,addr=0x200000000000,ptr=0x200000000000
-i=46,addr=0x400000000000,ptr=0x400000000000
-i=47,addr=0x800000000000,ptr=0xffffffffffffffff
-mmap: Cannot allocate memory
-```
-5 level page tables
-```
-
-i=44,addr=0x100000000000,ptr=0x100000000000
-i=45,addr=0x200000000000,ptr=0x200000000000
-i=46,addr=0x400000000000,ptr=0x400000000000
-i=47,addr=0x800000000000,ptr=0x800000000000
-i=48,addr=0x1000000000000,ptr=0x1000000000000
-i=49,addr=0x2000000000000,ptr=0x2000000000000
-i=50,addr=0x4000000000000,ptr=0x4000000000000
-i=51,addr=0x8000000000000,ptr=0x8000000000000
-i=52,addr=0x10000000000000,ptr=0x10000000000000
-i=53,addr=0x20000000000000,ptr=0x20000000000000
-i=54,addr=0x40000000000000,ptr=0x40000000000000
-i=55,addr=0x80000000000000,ptr=0x80000000000000
-PID = 9985
-PID = 9986
-```
-
 #### MAP_ANONYMOUS | MAP_SHARED
 
+Similar to `MAP_SHARED` example above, after the `fork()` both processes have 
+their own page tables but the same physical memory. The MAP_ANONYMOUS flag 
+indicates that the mapping is not backed by any file; it's contents are 
+initialized to zero.
+
 4-level page tables
 ```
-
+./mmap+memset+fork --begin 44 --end 55 --map_shared --map_anonymous
 i=44,addr=0x100000000000,ptr=0x100000000000
 i=45,addr=0x200000000000,ptr=0x200000000000
 i=46,addr=0x400000000000,ptr=0x400000000000
@@ -341,7 +322,7 @@ mmap: Cannot allocate memory
 ```
 5 level page table
 ```
-
+./mmap+memset+fork --begin 44 --end 55 --map_shared --map_anonymous
 i=44,addr=0x100000000000,ptr=0x100000000000
 i=45,addr=0x200000000000,ptr=0x200000000000
 i=46,addr=0x400000000000,ptr=0x400000000000
@@ -364,4 +345,40 @@ PID = 9983, 0x200000000 read(0x00) != write_pattern(0xff)
 PID = 9983, 0x400000000 read(0x00) != write_pattern(0xff)
 PID = 9983, 0x1000000000 read(0x00) != write_pattern(0xff)
 
+```
+
+
+#### MAP_ANONYMOUS | MAP_PRIVATE
+
+Similar to the MAP_PRIVATE example shown above, updates are private to each
+process and post update page tables point to unique physical memory. The 
+MAP_ANONYMOUS flag indicates that the mapping is not backed by any file; 
+it's contents are initialized to zero.
+
+4-level page tables
+```
+./mmap+memset+fork --begin 44 --end 55 --map_private --map_anonymous
+i=44,addr=0x100000000000,ptr=0x100000000000
+i=45,addr=0x200000000000,ptr=0x200000000000
+i=46,addr=0x400000000000,ptr=0x400000000000
+i=47,addr=0x800000000000,ptr=0xffffffffffffffff
+mmap: Cannot allocate memory
+```
+5 level page tables
+```
+./mmap+memset+fork --begin 44 --end 55 --map_private --map_anonymous
+i=44,addr=0x100000000000,ptr=0x100000000000
+i=45,addr=0x200000000000,ptr=0x200000000000
+i=46,addr=0x400000000000,ptr=0x400000000000
+i=47,addr=0x800000000000,ptr=0x800000000000
+i=48,addr=0x1000000000000,ptr=0x1000000000000
+i=49,addr=0x2000000000000,ptr=0x2000000000000
+i=50,addr=0x4000000000000,ptr=0x4000000000000
+i=51,addr=0x8000000000000,ptr=0x8000000000000
+i=52,addr=0x10000000000000,ptr=0x10000000000000
+i=53,addr=0x20000000000000,ptr=0x20000000000000
+i=54,addr=0x40000000000000,ptr=0x40000000000000
+i=55,addr=0x80000000000000,ptr=0x80000000000000
+PID = 9985
+PID = 9986
 ```
