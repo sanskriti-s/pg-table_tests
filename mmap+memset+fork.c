@@ -18,7 +18,7 @@ unsigned long long map_size = 1UL << 12;
 unsigned long long set_size = 1UL << 12;
 
 void usage(){
-	printf("Usage: ./mmap+memset+fork [OPTION]\n");	
+	printf("Usage: ./mmap+memset+fork [OPTION]\n");
 	printf("Tests virtual adress space updates with fork and mmap options\n\n");
 	printf("-d, --debug		prints out the PID and address touched by memset\n");
 	printf("-k, --keystroke		same as debug, but requires a char to be entered to show each line\n");
@@ -115,12 +115,12 @@ int main(int argc, char *argv[]){
 
 	parse_options (argc,argv);
 	array = malloc (sizeof(*array)*((i_till-i_from)+1));
-	
+
 	if (!array) {
 		perror("malloc");
 		ret = EXIT_FAILURE;
-		goto done;		
-	}	
+		goto done;
+	}
 
 	if (!(flag & MAP_ANONYMOUS)){
 
@@ -132,7 +132,7 @@ int main(int argc, char *argv[]){
 		if (fd == -1) {
 			perror("open");
 			ret = EXIT_FAILURE;
-			goto cleanup_free;	
+			goto cleanup_free;
 		}
 
 		/* Set the file size */
