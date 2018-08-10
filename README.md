@@ -148,6 +148,15 @@ address the heap even while using the 5-level page tables.
 This program tests to check if heap allocations can surpass 4-level page table
 tests.
 
+#### Usage
+
+```
+Usage: ./heap
+-m, --malloc		uses malloc to allocate memory
+-s, --sbrk		uses sbrk to allocate memory
+-h, --help              prints out help message
+
+```
 #### malloc
 
 The malloc test allocates as much memory as it can, 1 GiB at a time, pushing the
@@ -189,9 +198,29 @@ while forking and sharing mappings.
 
 Due to the indeterminate execution order (no pattern to the printing out of the
 PIDs post forking), the verification loop at the end of the program occasionally
-reports read != write. This only shows in the `MAP_SHARED` cases as 
+reports read != write. This only shows in the `MAP_SHARED` cases as
 `MAP_PRIVATE` keeps all the processes private from each other. Managing process
-execution order is an area for improvement. 
+execution order is an area for improvement.
+
+#### Usage
+
+```
+Usage: ./mmap+memset+fork [OPTION]
+
+-d, --debug		prints out the PID and address touched by memset
+-k, --keystroke		same as debug, but requires a char to be entered to show each line
+-h, --help              prints out help message
+-f, --fork_child        causes program to fork a child process
+-b, --begin             mmaps and memsets from 2^(arg)
+-e, --end               mmaps and memsets till 2^(arg)
+-m, --mmap_order        mmaps given 2^(arg) size
+-n, --set_order         memsets given 2^(arg) size
+-u, --map_populate      sets MAP_POPULATE flag in mmap
+-a, --map_anonymous     sets MAP_ANONYMOUS flag in mmap
+-s, --map_shared        sets MAP_SHARED flag in mmap
+-p, --map_private       sets MAP_PRIVATE flag in mmap
+```
+
 
 #### MAP_FIXED
 
