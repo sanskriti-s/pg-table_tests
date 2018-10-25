@@ -1,5 +1,5 @@
-PROGS:=heap mmap+memset+fork
-SRCS:=heap.c mmap+memset+fork.c
+PROGS:=heap mmap+memset+fork shmat
+SRCS:=heap.c mmap+memset+fork.c shmat.c
 SCRIPTS:=run-tests
 GENERATED:=mmap-datafile
 

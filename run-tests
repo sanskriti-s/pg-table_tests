@@ -155,4 +155,37 @@ if [[ $fail -eq 1 ]] ; then
 else
 	echo -e "$MSG_PASSED"
 fi
+
+#
+# setting max_shmat
+#
+if [[ $EXPECT_5LVL -eq 1 ]] ; then
+	MAX_SHMAT="56"
+else
+	MAX_SHMAT="46"
+fi
+
+
+#
+# shmat test
+#
+echo
+echo "Running shmat test..."
+regex="Allocates memory till ([0-9]+)"
+if ! output=$(./shmat --begin $BEGIN --end $END) ; then
+	echo "$? FAILED"
+	EXIT_STATUS=1
+elif [[ $output =~ $regex ]] ; then
+	alloc="${BASH_REMATCH[1]}"
+	if [[ $alloc -gt $MAX_SHMAT ]] ; then
+		echo "attached memory at 2^$alloc beyond 2^$MAX_SHMAT"
+		echo -e "$MSG_FAILED"
+		EXIT_STATUS=1
+	else
+		echo "attached memory at 2^$alloc below or equal to 2^$MAX_SHMAT"
+		echo -e "$MSG_PASSED"
+	fi
+fi
+
+
 exit $EXIT_STATUS
