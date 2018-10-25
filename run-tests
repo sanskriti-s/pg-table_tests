@@ -101,7 +101,7 @@ fi
 #
 if [[ $EXPECT_5LVL -eq 1 ]] ; then
 	BEGIN="47"
-	END="56"
+	END="55"
 else
 	BEGIN="37"
 	END="46"
