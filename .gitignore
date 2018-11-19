@@ -1,3 +1,6 @@
+*.o
+
 heap
-mmap+memset+fork
 mmap-datafile
+mmf
+shmat
