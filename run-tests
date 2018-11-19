@@ -101,18 +101,18 @@ fi
 #
 if [[ $EXPECT_5LVL -eq 1 ]] ; then
 	BEGIN="47"
-	END="55"
+	END="56"
 else
 	BEGIN="37"
 	END="46"
 fi
 
 #
-# mmap+memset+fork test - 1 process, MAP_PRIVATE
+# mmf test - 1 process, MAP_PRIVATE
 #
 echo
-echo "Running mmap+memset+fork test: 1 process, MAP_PRIVATE..."
-output="$(./mmap+memset+fork --begin "$BEGIN" --end "$END" --map_private --map_anonymous)"
+echo "Running mmf test: 1 process, MAP_PRIVATE..."
+output="$(./mmf --begin "$BEGIN" --end "$END" --map_private --map_anonymous)"
 
 fail=$?
 regex="read\(.*\) != write_pattern\(.*\)"
@@ -133,11 +133,11 @@ else
 fi
 
 #
-# mmap+memset+fork test - 2 processes, MAP_PRIVATE
+# mmf test - 2 processes, MAP_PRIVATE
 #
 echo
-echo "Running mmap+memset+fork test: 2 processes, MAP_PRIVATE..."
-output="$(./mmap+memset+fork --begin "$BEGIN" --end "$END" --fork_child --map_private --map_anonymous)"
+echo "Running mmf test: 2 processes, MAP_PRIVATE..."
+output="$(./mmf --begin "$BEGIN" --end "$END" --fork_child --map_private --map_anonymous)"
 
 fail=$?
 regex="read\(.*\) != write_pattern\(.*\)"
