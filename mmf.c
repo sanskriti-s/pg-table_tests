@@ -33,7 +33,7 @@ int debug_print = 0;
 unsigned long long map_size = 1UL << 12;
 
 void usage(){
-	printf("Usage: ./mmap+memset+fork [OPTION]\n");
+	printf("Usage: ./mmf [OPTION]\n");
 	printf("Tests virtual adress space updates with fork and mmap options\n\n");
 	printf("-m, --mmap		allocates memory using mmap\n");
 	printf("-c, --shmem		allocates memory using shared memory\n");

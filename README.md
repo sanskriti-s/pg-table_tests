@@ -104,7 +104,10 @@ Test programs can be built using the project's Makefile:
 ```
 % make
 cc     heap.c   -o heap
-cc     mmap+memset+fork.c   -o mmap+memset+fork
+cc    -c -o mmf-mmap.o mmf-mmap.c
+cc    -c -o mmf-shm.o mmf-shm.c
+cc     mmf.c mmf-mmap.o mmf-shm.o   -o mmf
+cc     shmat.c   -o shmat
 ```
 
 `$CC` and `$CFLAGS` build options may be overridden on the command line:
@@ -112,7 +115,10 @@ cc     mmap+memset+fork.c   -o mmap+memset+fork
 ```
 % CC=clang CFLAGS='-ggdb -Wall' make
 clang -ggdb -Wall    heap.c   -o heap
-clang -ggdb -Wall    mmap+memset+fork.c   -o mmap+memset+fork
+clang -ggdb -Wall   -c -o mmf-mmap.o mmf-mmap.c
+clang -ggdb -Wall   -c -o mmf-shm.o mmf-shm.c
+clang -ggdb -Wall    mmf.c mmf-mmap.o mmf-shm.o   -o mmf
+clang -ggdb -Wall    shmat.c   -o shmat
 ```
 
 Binaries and temporary files can be cleaned up using the `make clean` target.
@@ -183,7 +189,7 @@ Expected return values:
 5-level page tables: ~130000 GiB
 ```
 
-### mmap+memset+fork
+### mmf (mmap+memset+fork)
 
 On x86 architecture, 5-level paging enables 56-bit userspace virtual address
 space. However, not all user space is ready to handle such wide addresses. To
@@ -205,16 +211,18 @@ execution order is an area for improvement.
 #### Usage
 
 ```
-Usage: ./mmap+memset+fork [OPTION]
+Usage: ./mmf [OPTION]
+Tests virtual adress space updates with fork and mmap options
 
--d, --debug		prints out the PID and address touched by memset
--k, --keystroke		same as debug, but requires a char to be entered to show each line
+-m, --mmap              allocates memory using mmap
+-c, --shmem             allocates memory using shared memory
+-d, --debug             prints out the PID and address touched by memset
+-k, --keystroke         same as debug, but requires a char to be entered to show each line
 -h, --help              prints out help message
 -f, --fork_child        causes program to fork a child process
--b, --begin             mmaps and memsets from 2^(arg)
--e, --end               mmaps and memsets till 2^(arg)
--m, --mmap_order        mmaps given 2^(arg) size
--n, --set_order         memsets given 2^(arg) size
+-b, --begin             maps and memsets from 2^(arg)
+-e, --end               maps and memsets till 2^(arg)
+-o, --mmap_order        maps given 2^(arg) size
 -u, --map_populate      sets MAP_POPULATE flag in mmap
 -a, --map_anonymous     sets MAP_ANONYMOUS flag in mmap
 -s, --map_shared        sets MAP_SHARED flag in mmap
@@ -227,15 +235,15 @@ Usage: ./mmap+memset+fork [OPTION]
 In order to successfully allocate large virtual address space as described by
 the Linux
 [documentation](https://github.com/torvalds/linux/blob/master/Documentation/x86/x86_64/5level-paging.txt),
-the mmap+memset+fork will always call `mmap()` with the `MAP_FIXED` flag set.
+the mmf will always call `mmap()` with the `MAP_FIXED` flag set.
 
-To illustrate, we can invoke mmap+memset+fork to create a series of mmap
+To illustrate, we can invoke mmf to create a series of mmap
 requests, starting with a fixed address at 0x100000000000 (2^44 bytes) and
 ending at 0x1000000000000 (2^56 bytes):
 
 4-level page tables results:
 ```
-./mmap+memset+fork --begin 44 --end 56 --map_private
+./mmf --mmap --begin 44 --end 56 --map_private
 i=44,addr=0x100000000000,ptr=0x100000000000
 i=45,addr=0x200000000000,ptr=0x200000000000
 i=46,addr=0x400000000000,ptr=0x400000000000
@@ -245,7 +253,7 @@ mmap: Cannot allocate memory
 
 5-level page tables results:
 ```
-./mmap+memset+fork --begin 44 --end 56 --map_private
+./mmf --mmap --begin 44 --end 56 --map_private
 i=44,addr=0x100000000000,ptr=0x100000000000
 i=45,addr=0x200000000000,ptr=0x200000000000
 i=46,addr=0x400000000000,ptr=0x400000000000
@@ -273,7 +281,7 @@ virtual address space unavailable to the 4-level page table test.
 
 4-level page tables
 ```
-./mmap+memset+fork --begin 44 --end 55 --map_shared
+./mmf --mmap --begin 44 --end 55 --map_shared
 i=44,addr=0x100000000000,ptr=0x100000000000
 i=45,addr=0x200000000000,ptr=0x200000000000
 i=46,addr=0x400000000000,ptr=0x400000000000
@@ -284,7 +292,7 @@ mmap: Cannot allocate memory
 5 level page table
 
 ```
-./mmap+memset+fork --begin 44 --end 55 --map_shared
+./mmf --mmap --begin 44 --end 55 --map_shared
 i=44,addr=0x100000000000,ptr=0x100000000000
 i=45,addr=0x200000000000,ptr=0x200000000000
 i=46,addr=0x400000000000,ptr=0x400000000000
@@ -307,7 +315,7 @@ PID = 9976
 
 4-level page tables
 ```
-./mmap+memset+fork --begin 44 --end 55 --map_private
+./mmf --mmap --begin 44 --end 55 --map_private
 i=44,addr=0x100000000000,ptr=0x100000000000
 i=45,addr=0x200000000000,ptr=0x200000000000
 i=46,addr=0x400000000000,ptr=0x400000000000
@@ -316,7 +324,7 @@ mmap: Cannot allocate memory
 ```
 5-level page table
 ```
-./mmap+memset+fork --begin 44 --end 55 --map_private
+./mmf --mmap --begin 44 --end 55 --map_private
 i=44,addr=0x100000000000,ptr=0x100000000000
 i=45,addr=0x200000000000,ptr=0x200000000000
 i=46,addr=0x400000000000,ptr=0x400000000000
@@ -342,7 +350,7 @@ initialized to zero.
 
 4-level page tables
 ```
-./mmap+memset+fork --begin 44 --end 55 --map_shared --map_anonymous
+./mmf --mmap --begin 44 --end 55 --map_shared --map_anonymous
 i=44,addr=0x100000000000,ptr=0x100000000000
 i=45,addr=0x200000000000,ptr=0x200000000000
 i=46,addr=0x400000000000,ptr=0x400000000000
@@ -351,7 +359,7 @@ mmap: Cannot allocate memory
 ```
 5 level page table
 ```
-./mmap+memset+fork --begin 44 --end 55 --map_shared --map_anonymous
+./mmf --mmap --begin 44 --end 55 --map_shared --map_anonymous
 i=44,addr=0x100000000000,ptr=0x100000000000
 i=45,addr=0x200000000000,ptr=0x200000000000
 i=46,addr=0x400000000000,ptr=0x400000000000
@@ -386,7 +394,7 @@ it's contents are initialized to zero.
 
 4-level page tables
 ```
-./mmap+memset+fork --begin 44 --end 55 --map_private --map_anonymous
+./mmf --mmap --begin 44 --end 55 --map_private --map_anonymous
 i=44,addr=0x100000000000,ptr=0x100000000000
 i=45,addr=0x200000000000,ptr=0x200000000000
 i=46,addr=0x400000000000,ptr=0x400000000000
@@ -395,7 +403,7 @@ mmap: Cannot allocate memory
 ```
 5 level page tables
 ```
-./mmap+memset+fork --begin 44 --end 55 --map_private --map_anonymous
+./mmf --mmap --begin 44 --end 55 --map_private --map_anonymous
 i=44,addr=0x100000000000,ptr=0x100000000000
 i=45,addr=0x200000000000,ptr=0x200000000000
 i=46,addr=0x400000000000,ptr=0x400000000000
