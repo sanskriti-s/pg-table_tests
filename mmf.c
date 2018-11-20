@@ -128,7 +128,7 @@ int parse_options (test_t *test, int argc, char *argv[]){
 		}
 	}
 
-	if (do_mmap ^ do_shmem == 0){
+	if ((do_mmap ^ do_shmem) == 0){
 		printf ("Choose either option mmap or option shmem\n");
 		return -1;
 	}
@@ -136,7 +136,7 @@ int parse_options (test_t *test, int argc, char *argv[]){
  	if (do_mmap == 1) {
                 int do_shared = !!(test->flag & MAP_SHARED);
                 int do_private = !!(test->flag & MAP_PRIVATE);
-                if (do_shared ^ do_private == 0){
+                if ((do_shared ^ do_private) == 0){
                         printf("In case of mmap, either map shared or map private must be chosen\n");
                 	return -1;
 		}
