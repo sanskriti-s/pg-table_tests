@@ -20,8 +20,8 @@ int shm_create(map_t *map, int order, test_t *test){
 		return -1;
 	}
 	map->shmem_id = shmid;
-
 	shm_ptr = shmat(shmid, addr, 0);
+	printf ("order=%d,addr=%p,shm_ptr=%p \n",order,addr,shm_ptr);
 	if (shm_ptr == (void *)-1){
 		perror("shmat: ");
 		return -1;
